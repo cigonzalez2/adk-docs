@@ -1,0 +1,31 @@
+name: Build PDF
+
+on:          # Ejecuta al apretar el botón “Run workflow”
+  workflow_dispatch:
+
+jobs:
+  build-pdf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependencias
+        run: |
+          pip install mkdocs mkdocs-material \
+                     mkdocs-with-pdf weasyprint==62.1
+          # Añade el plugin si no está
+          grep -q "with-pdf" mkdocs.yml || \
+          sed -i "1 a plugins:\n  - search\n  - with-pdf" mkdocs.yml
+
+      - name: Construir sitio y PDF
+        run: mkdocs build --verbose     # genera site/ y site.pdf
+
+      - name: Publicar artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: ADK_Documentation
+          path: site.pdf
